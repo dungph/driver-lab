@@ -1,13 +1,28 @@
 #include "linux/export.h"
 #include "linux/stddef.h"
+#include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/module.h>
 
+static int vchar_dr_open(struct inode *inode, struct file *flip) {
+  pr_info("driver open");
+  return 0;
+}
+static int vchar_dr_release(struct inode *, struct file *flip) {
+  pr_info("driver release");
+  return 0;
+}
+static struct file_operations fops = {
+    .owner = THIS_MODULE,
+    .open = vchar_dr_open,
+    .release = vchar_dr_release,
+};
 struct _vchar_dr {
   dev_t dev_num;
   struct class *dev_class;
   struct device *dev;
+  struct cdev *vcdev;
 } vchar_dr;
 
 int init_module(void) {
@@ -39,10 +54,16 @@ int init_module(void) {
     unregister_chrdev_region(vchar_dr.dev_num, 1);
   }
 
+  vchar_dr.dev = device_create(vchar_dr.dev_class, NULL, vchar_dr.dev_num, NULL,
+                               "vchar_dev");
+  vchar_dr.vcdev = cdev_alloc();
+  cdev_init(vchar_dr.vcdev, &fops);
+  cdev_add(vchar_dr.vcdev, vchar_dr.dev_num, 1);
   return 0;
 }
 
 void cleanup_module(void) {
+  cdev_del(vchar_dr.vcdev);
   device_destroy(vchar_dr.dev_class, vchar_dr.dev_num);
   class_destroy(vchar_dr.dev_class);
   unregister_chrdev_region(vchar_dr.dev_num, 1);
