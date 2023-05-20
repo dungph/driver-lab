@@ -1,6 +1,24 @@
 #include "linux/moduleparam.h"
 #include <linux/module.h>
 
+int min_val(int arr[], int len) {
+  int i, ret = arr[0];
+  for (i = 1; i < len; i++) {
+    if (arr[i] < ret) {
+      ret = arr[i];
+    }
+  }
+  return ret;
+}
+int max_val(int arr[], int len) {
+  int i, ret = arr[0];
+  for (i = 1; i < len; i++) {
+    if (arr[i] > ret) {
+      ret = arr[i];
+    }
+  }
+  return ret;
+}
 int sum(int arr[], int len) {
   int i, ret = 0;
   for (i = 0; i < len; i++) {
@@ -9,26 +27,14 @@ int sum(int arr[], int len) {
   return ret;
 }
 
-int gcd(int first_num, int second_num) {
-  while (first_num != second_num) {
-    if (first_num > second_num) {
-      first_num -= second_num;
-    } else {
-      second_num -= first_num;
-    }
-  }
-  return first_num;
-}
 int init_module(void) {
   int arr[] = {1, 2, 3, 4};
   int len = 4;
-  int n1 = 12;
-  int n2 = 16;
 
   pr_info("Init module\n");
-
-  pr_info("sum = %d\n", sum(arr, len));
-  pr_info("gcd = %d\n", gcd(n1, n2));
+  pr_info("min = %d\n", min_val(arr, len));
+  pr_info("max = %d\n", max_val(arr, len));
+  pr_info("avg = %d\n", sum(arr, len));
   return 0;
 }
 
