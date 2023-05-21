@@ -16,10 +16,9 @@ int main() {
   while (1) {
     printf("****Please Enter the Option******\n");
     printf("        1. Open\n");
-    printf("        2. Write DEC\n");
-    printf("        3. Read BIN\n");
-    printf("        4. Read OCT\n");
-    printf("        5. Read HEX\n");
+    printf("        2. Get exact nanosecond\n");
+    printf("        3. Get exact microsecond\n");
+    printf("        4. Get relative second\n");
     printf("        6. Exit                 \n");
     printf("*********************************\n");
     scanf(" %c", &option);
@@ -35,28 +34,20 @@ int main() {
       }
       break;
     case '2':
-      printf("Enter the DEC Number to write into driver :");
-      scanf("  %[^\t\n]s", buffer);
-      printf("Data Writing ...");
-
-      ioctl(fd, IOCTL_INPUT, buffer);
-      printf("Done!\n");
+      printf("Data Reading ...");
+      ioctl(fd, IOCTL_GET_NANO_S, buffer);
+      printf("Done!\n\n");
+      printf("Data = %s\n\n", buffer);
       break;
     case '3':
       printf("Data Reading ...");
-      ioctl(fd, IOCTL_READ_BIN, buffer);
+      ioctl(fd, IOCTL_GET_MICRO_S, buffer);
       printf("Done!\n\n");
       printf("Data = %s\n\n", buffer);
       break;
     case '4':
       printf("Data Reading ...");
-      ioctl(fd, IOCTL_READ_OCT, buffer);
-      printf("Done!\n\n");
-      printf("Data = %s\n\n", buffer);
-      break;
-    case '5':
-      printf("Data Reading ...");
-      ioctl(fd, IOCTL_READ_HEX, buffer);
+      ioctl(fd, IOCTL_GET_TIME, buffer);
       printf("Done!\n\n");
       printf("Data = %s\n\n", buffer);
       break;
