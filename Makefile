@@ -9,3 +9,5 @@ insmod:
 	sudo insmod main.ko
 rmmod:
 	sudo rmmod main
+test:
+	sudo gcc test.c -o test && ./test && rm test 
