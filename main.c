@@ -57,8 +57,8 @@ static struct file_operations fops = {
 };
 int init_module(void) {
   pr_info("Init module\n");
-  vchar_dr.dev_num = 0;
-  alloc_chrdev_region(&vchar_dr.dev_num, 0, 1, "vchar_device");
+  vchar_dr.dev_num = MKDEV(42, 0);
+  register_chrdev_region(MKDEV(42, 0), 1, "vchar_dev_s");
   vchar_dr.dev_class = class_create(THIS_MODULE, "class_vchar_dev");
   vchar_dr.dev = device_create(vchar_dr.dev_class, NULL, vchar_dr.dev_num, NULL,
                                "vchar_dev");
