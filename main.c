@@ -1,7 +1,9 @@
 #include "linux/export.h"
+#include "linux/printk.h"
 #include "linux/stddef.h"
 #include "vchar_ioctl_cmd.h"
 #include <linux/cdev.h>
+#include <linux/crypto.h>
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/module.h>
@@ -15,54 +17,79 @@ struct _vchar_dr {
   int buflen;
 } vchar_dr;
 
-int my_dec_to_hex(char *dec, char *hex) {
-  int ndec = 0;
-  int len = strlen(dec);
+void caesar_encrypt(int key) {
   int i;
-
-  for (i = len - 1; i >= 0; i--) {
-    ndec *= 10;
-    ndec += dec[i] - '0';
+  for (i = 0; i < vchar_dr.buflen; i++) {
+    char c = vchar_dr.buffer[i];
+    if ('0' <= c && c <= '9') {
+      c += key % 10;
+      if (c > '9') {
+        c -= 10;
+      }
+    }
+    if ('a' <= c && c <= 'z') {
+      c += key % 26;
+      if (c > 'z') {
+        c -= 26;
+      }
+    }
+    if ('A' <= c && c <= 'Z') {
+      c += key % 26;
+      if (c > 'Z') {
+        c -= 26;
+      }
+    }
+    vchar_dr.buffer[i] = c;
   }
-
-  sprintf(hex, "%x", ndec);
-  return 1;
 }
-int my_dec_to_oct(char *dec, char *hex) {
-  int ndec = 0;
-  int len = strlen(dec);
+void caesar_decrypt(int key) {
   int i;
-
-  for (i = len - 1; i >= 0; i--) {
-    ndec *= 10;
-    ndec += dec[i] - '0';
+  for (i = 0; i < vchar_dr.buflen; i++) {
+    char c = vchar_dr.buffer[i];
+    if ('0' <= c && c <= '9') {
+      c -= key % 10;
+      if (c < '0') {
+        c += 10;
+      }
+    }
+    if ('a' <= c && c <= 'z') {
+      c -= key % 26;
+      if (c < 'a') {
+        c += 26;
+      }
+    }
+    if ('A' <= c && c <= 'Z') {
+      c -= key % 26;
+      if (c < 'A') {
+        c += 26;
+      }
+    }
+    vchar_dr.buffer[i] = c;
   }
-
-  sprintf(hex, "%o", ndec);
-  return 1;
 }
-int my_dec_to_bin(char *dec, char *bin) {
-  int ndec = 0;
-  int len = strlen(dec);
+void replace_encrypt(char *key) {
   int i;
-  int bin_len = 0;
-
-  for (i = len - 1; i >= 0; i--) {
-    ndec *= 10;
-    ndec += dec[i] - '0';
+  for (i = 0; i < vchar_dr.buflen; i++) {
+    char c = vchar_dr.buffer[i];
+    if ('a' <= c && c <= 'z') {
+      c = key[c - 'a'];
+    }
+    vchar_dr.buffer[i] = c;
   }
-  while (ndec) {
-    bin[bin_len] = ndec % 2 + '0';
-    ndec /= 2;
-    bin_len += 1;
+}
+void replace_decrypt(char *key) {
+  int i;
+  for (i = 0; i < vchar_dr.buflen; i++) {
+    char c = vchar_dr.buffer[i];
+    int j;
+    for (j = 0; j < 26; j++) {
+      if (key[j] == c) {
+        c = j + 'a';
+        break;
+      }
+    }
+    vchar_dr.buffer[i] = c;
   }
-  bin[bin_len] = 0;
-  for (i = 0; i < bin_len / 2; i++) {
-    char t = bin[i];
-    bin[i] = bin[bin_len - i - 1];
-    bin[bin_len - i - 1] = t;
-  }
-  return 1;
 }
 
 static int vchar_dr_open(struct inode *inode, struct file *file) {
@@ -102,32 +129,23 @@ static ssize_t vchar_dr_write(struct file *file, const char __user *user_buffer,
 static long vchar_dr_ioctl(struct file *file, unsigned int cmd,
                            unsigned long arg) {
   int ret = 0;
-  int remains;
 
   char buf[BUFFER_SIZE];
+
   switch (cmd) {
-  /* TODO 6/3: if cmd = MY_IOCTL_PRINT, display IOCTL_MESSAGE */
-  case IOCTL_INPUT:
-    remains = copy_from_user(vchar_dr.buffer, (char __user *)arg, BUFFER_SIZE);
-    if (remains)
-      ret = -EFAULT;
-    vchar_dr.buflen = BUFFER_SIZE - remains;
+  case IOCTL_ENCRYPT_CAESAR:
+    caesar_encrypt(arg);
     break;
-  /* TODO 7/19: extra tasks, for home */
-  case IOCTL_READ_BIN:
-    vchar_dr.buffer[vchar_dr.buflen] = 0;
-    my_dec_to_bin(vchar_dr.buffer, buf);
-    copy_to_user((char __user *)arg, buf, BUFFER_SIZE);
+  case IOCTL_DECRYPT_CAESAR:
+    caesar_decrypt(arg);
     break;
-  case IOCTL_READ_OCT:
-    vchar_dr.buffer[vchar_dr.buflen] = 0;
-    my_dec_to_oct(vchar_dr.buffer, buf);
-    copy_to_user((char __user *)arg, buf, BUFFER_SIZE);
+  case IOCTL_ENCRYPT_REPLACE:
+    copy_from_user(buf, (char __user *)arg, 27);
+    replace_encrypt(buf);
     break;
-  case IOCTL_READ_HEX:
-    vchar_dr.buffer[vchar_dr.buflen] = 0;
-    my_dec_to_hex(vchar_dr.buffer, buf);
-    copy_to_user((char __user *)arg, buf, BUFFER_SIZE);
+  case IOCTL_DECRYPT_REPLACE:
+    copy_from_user(buf, (char __user *)arg, 27);
+    replace_decrypt(buf);
     break;
   default:
     ret = -EINVAL;

@@ -8,59 +8,79 @@
 #include <unistd.h>
 
 int8_t buffer[BUFFER_SIZE];
+int fd;
+void open_dr() { fd = open("/dev/vchar_dev", O_RDWR); }
 int main() {
-  int fd;
   char option;
   printf("**************************************************\n");
   printf("*******user application to test char driver*******\n");
   while (1) {
     printf("****Please Enter the Option******\n");
-    printf("        1. Open\n");
-    printf("        2. Write DEC\n");
-    printf("        3. Read BIN\n");
-    printf("        4. Read OCT\n");
-    printf("        5. Read HEX\n");
-    printf("        6. Exit                 \n");
+    printf("1. (Re)open\n");
+    printf("2. Write buffer\n");
+    printf("3. Read buffer\n");
+    printf("4. Encrypt caesar\n");
+    printf("5. Decrypt caesar\n");
+    printf("6. Encrypt replace\n");
+    printf("7. Decrypt replace\n");
+    printf("0. Exit                 \n");
     printf("*********************************\n");
     scanf(" %c", &option);
     printf("Your Option = %c\n", option);
 
+    int key_caesar;
+    char key_replace[] = "abcdefghijklmnopqrstuvwxyz";
+
     switch (option) {
     case '1':
       // Chu y truyen dung ten file thiet bi
-      fd = open("/dev/vchar_dev", O_RDWR);
+      if (fd) {
+        close(fd);
+      }
+      open_dr();
       if (fd < 0) {
         printf("Cannot open device file...\n");
         return 0;
       }
       break;
     case '2':
-      printf("Enter the DEC Number to write into driver :");
+      printf("Enter the text to write into buffer:");
       scanf("  %[^\t\n]s", buffer);
       printf("Data Writing ...");
-
-      ioctl(fd, IOCTL_INPUT, buffer);
+      write(fd, buffer, strlen(buffer) + 1);
       printf("Done!\n");
       break;
     case '3':
       printf("Data Reading ...");
-      ioctl(fd, IOCTL_READ_BIN, buffer);
+      read(fd, buffer, 1024);
       printf("Done!\n\n");
       printf("Data = %s\n\n", buffer);
       break;
     case '4':
-      printf("Data Reading ...");
-      ioctl(fd, IOCTL_READ_OCT, buffer);
+      printf("Enter number for encryption key:");
+      scanf("  %d", &key_caesar);
+      ioctl(fd, IOCTL_ENCRYPT_CAESAR, key_caesar);
       printf("Done!\n\n");
-      printf("Data = %s\n\n", buffer);
       break;
     case '5':
-      printf("Data Reading ...");
-      ioctl(fd, IOCTL_READ_HEX, buffer);
+      printf("Enter number for decryption key:");
+      scanf("  %d", &key_caesar);
+      ioctl(fd, IOCTL_DECRYPT_CAESAR, key_caesar);
       printf("Done!\n\n");
-      printf("Data = %s\n\n", buffer);
       break;
     case '6':
+      printf("Enter encryption key (%s):", key_replace);
+      scanf("  %s", key_replace);
+      ioctl(fd, IOCTL_ENCRYPT_REPLACE, key_replace);
+      printf("Done!\n\n");
+      break;
+    case '7':
+      printf("Enter decryption key (%s):", key_replace);
+      scanf("  %s", key_replace);
+      ioctl(fd, IOCTL_DECRYPT_REPLACE, key_replace);
+      printf("Done!\n\n");
+      break;
+    case '0':
       close(fd);
       exit(1);
       break;
