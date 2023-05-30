@@ -14,11 +14,11 @@ pub fn run_command(hostname: &str, command: &str) -> std::io::Result<String> {
     .to_string())
 }
 pub fn get_attr(hostname: &str, attribute: &str) -> std::io::Result<String> {
-    let cmd = format!("cat /sys/kernel/i2c1602/{attribute}");
+    let cmd = format!("cat /sys/kernel/pcf_lcd/{attribute}");
     run_command(hostname, &cmd)
 }
 pub fn set_attr(hostname: &str, attribute: &str, value: &str) -> std::io::Result<String> {
-    let cmd = format!("echo \"{value}\" > /sys/kernel/i2c1602/{attribute}");
+    let cmd = format!("echo \"{value}\" > /sys/kernel/pcf_lcd/{attribute}");
     run_command(hostname, &cmd)
 }
 

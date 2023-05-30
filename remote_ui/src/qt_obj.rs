@@ -55,7 +55,7 @@ mod qt_obj {
     impl qobject::Demo {
         #[qinvokable]
         pub fn try_hostname(mut self: Pin<&mut Self>, hostname: &QString) {
-            let success = crate::run_command(&hostname.to_string(), "ls /sys/kernel/i2c1602")
+            let success = crate::run_command(&hostname.to_string(), "ls /sys/kernel/pcf_lcd")
                 .map(|s| {
                     s.lines()
                         .all(|s| super::DRIVER_ATTRIBUTES.iter().any(|t| *t == s))

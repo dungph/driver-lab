@@ -157,7 +157,6 @@ void inc_offset(void) {
 }
 
 void refresh(void) {
-  pr_info("refresh\n");
   if (get_scroll()) {
     if (__scroll_start) {
       if (__l1_scroll_done && __l2_scroll_done) {
@@ -169,7 +168,6 @@ void refresh(void) {
         __l2_scroll_done = 0;
       } else {
         inc_offset();
-        pr_info("l1off: %d, l2off: %d", __l1_off, __l2_off);
       }
     } else {
       __scroll_start = 1;

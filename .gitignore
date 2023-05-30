@@ -6,3 +6,5 @@
 *.d
 *.mod
 *.order
+.cache
+*.dtbo

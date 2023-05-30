@@ -130,7 +130,7 @@ static struct attribute_group attr_group = {
 };
 
 void lcd_sysfs_init(void) {
-  lcd_kobj = kobject_create_and_add("i2c1602", kernel_kobj);
+  lcd_kobj = kobject_create_and_add("pcf_lcd", kernel_kobj);
   if (sysfs_create_group(lcd_kobj, &attr_group)) {
     kobject_put(lcd_kobj);
   }
