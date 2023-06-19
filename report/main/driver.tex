@@ -49,7 +49,7 @@
     {1em}
     {}
 
-\input{glossaries}
+\input{../glossaries/glossaries}
 
 \lstset{basicstyle=\ttfamily, numbers=left, numberstyle=\small, numbersep=8pt, frame = single, breaklines=true}
 
@@ -63,50 +63,50 @@
 
 \begin{document}
 
-\include{essential/cover}
+\input{../essential/cover}
 
 \pagenumbering{arabic}
 
 \chapter{GIỚI THIỆU CÔNG CỤ}
 \section{Màn hình LCD1602 HD44780}
-\input{content/hd44780}
+\input{../content/hd44780}
 \section{Module mở rộng GPIO PCF8574 cho LCD1602}
-\input{content/i2c.tex}
-\input{content/pcf8574}
+\input{../content/i2c.tex}
+\input{../content/pcf8574}
 \section{Phát triển \acrshort{i2c} device driver}
-\input{content/device_driver}
+\input{../content/device_driver}
 \section {Giao tiếp với device driver}
-\input{content/device_driver_interface.tex}
+\input{../content/device_driver_interface.tex}
 \chapter{THIẾT KẾ DRIVER}
 
 Driver được triển khai trên nhiều file. File lcd\_data.h chứa dữ liệu cho hoạt động điều khiển của driver (nội dung hiển thị, các dữ liệu điều khiển hiển thị, cuộn trang, ...).  File lcd\_sysfs.h giúp xuất dữ liệu driver và thay đổi dữ liệu driver theo yêu cầu của người dùng sử dụng hệ thống sysfs. File lcd\_i2c\_client.h chứa các hàm tương tác với thiết bị như điều khiển đèn nền, điều khiển cuộn trang hay thay đổi dữ liệu. File pcf\_lcd.c là file chính của driver, thực hiện khai báo driver, khởi tạo luồng điều khiển, các hàm probe, remove.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/driver.jpg}
+	\includegraphics[width=0.8\textwidth]{../images/driver.jpg}
 	\caption{Sơ đồ khối driver}
 \end{figure}
 Trong luồng điều khiển hoạt động của driver, thực hiện liên tục lấy dữ liệu hiển thị cho màn hình. Dữ liệu này có thể thay đổi sau mỗi lần lặp do dữ liệu mới được cập nhật hoặc sau khi làm mới dữ liệu, ở chế độ cuộn văn bản, dữ liệu hiển thị bị dịch chuyển sang ký tự khác. Sơ đố luồng điều khiển được thể hiện trong hình \ref{f:work-thread}.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/driver-work-thread.jpg}
+	\includegraphics[width=0.8\textwidth]{../images/driver-work-thread.jpg}
 	\caption{Luồng điều khiển}
 	\label{f:work-thread}
 \end{figure}
 
 Khi khai báo driver, thực hiện tạo đối tượng struct i2c\_driver trong đó bao gồm các trường probe\_new cho việc khởi tại thiết bị, .remove cho việc 	gỡ bỏ thiết bị, .id\_table là đối tượng struct i2c\_device\_id cho thiết bị, .of\_match\_table là struct of\_device\_id chứa thông tin tên thiết bị tương thích với driver được lưu trong device tree.
-\lstinputlisting[firstline=66, firstnumber=66, lastline=109]{../pcf_lcd.c}
+\lstinputlisting[firstline=66, firstnumber=66, lastline=109]{../../pcf_lcd.c}
 
 Việc làm mới dữ liệu được thực hiện liên tục để phục vụ mục đích hiển thị dữ liệu mới từ người dùng hoặc phục vụ mục đích cuộn nội dung. Hàm làm mới dữ liệu được khai báo bên trong file chứa dữ liệu.
-\lstinputlisting[firstline=8,firstnumber=8, lastline=23]{../lcd_data.h}
-\lstinputlisting[firstline=143,firstnumber=143, lastline=176]{../lcd_data.h}
+\lstinputlisting[firstline=8,firstnumber=8, lastline=23]{../../lcd_data.h}
+\lstinputlisting[firstline=143,firstnumber=143, lastline=176]{../../lcd_data.h}
 
 \chapter{THIẾT KẾ GIAO DIỆN}
 Để giúp việc điều khiển thiết bị được đơn giản hơn, nhóm thực hiện thiết kế một giao diện đơn giản dựa trên QT. Các thao tác trên giao diện là được thực hiện tương ứng với giao diện trong sysfs của driver.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/gui.png}
+	\includegraphics[width=0.8\textwidth]{../images/gui.png}
 	\caption{Giao diện đồ họa cho thiết bị}
 \end{figure}
 
