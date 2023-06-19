@@ -1,0 +1,165 @@
+\chapter{THỰC HIỆN ĐỀ TÀI}
+\section{Yêu cầu hệ thống}
+\paragraph{}
+Hệ thống thiết bị phải được lắp đặt và lập trình cho các công việc sau:
+\begin{itemize}
+    \item Khi cấp nguồn thực hiện truyền dòng chữ "Họ và tên sinh viên là: " lên màn hình console của máy tính qua giao tiếp \acrshort{uart}.
+    \item Khi người dùng gõ các ký tự lên màn hình console, dữ liệu được gửi sang thiết bị và hiển thị trên màn hình LCD1602 cũng như gửi lại ký tự lên màn hình console để hiển thị cho người gõ.
+    \item Nếu ký tự người dùng gõ không phải ký tự chữ cái, chữ số, dấu cách hoặc ký tự xuống dòng, bỏ qua ký tự.
+    \item Nếu người dùng nhấn "Enter", thực hiện gửi chuỗi "Đã nhập: " và chuỗi người dùng nhập vào lên màn hinh máy tính, hiển thị trên màn hình LCD1602 dòng chữ "TEN SINH VIEN LA" và dòng 2 là chuỗi người dùng nhập.
+    \item Nếu người dùng nhấn Enter sau lần nhấn Enter trước đó, thiết bị gửi chuỗi xóa màn hình console và gửi dòng "Họ và tên sinh viên là: " lên màn hình console của máy tính. Khi người dùng nhập ký tự đầu tiên, thực hiện xóa màn hình LCD1602 và thực hiện in ký tự đó và các ký tự tiếp theo.
+\end{itemize}
+
+\paragraph{}
+Một số yêu cầu phi chức năng khác:
+\begin{itemize}
+    \item Hệ thống cần đáp ứng nhanh, xử lý nhanh tránh trường hợp người dùng cảm nhận được độ trễ khi nhập.
+    \item Khi người dùng nhập ký tự nhanh (từ 20ms), không được làm mất ký tự.
+    \item Nhận đúng ký tự người dùng nhập vào và hiển thị đúng ký tự đó lên màn hình console cũng như màn hình LCD1602.
+    \item Số ký tự tối đa được nhập dưới 100 ký tự, nếu vượt quá khoảng hiển thị của màn hình LCD1602, thực hiện thuật toán cuộn trang để hiển thị các ký tự.
+\end{itemize}
+\section{Lựa chọn và lắp đặt phần cứng}
+\paragraph{}
+Đối với phần cứng, kết nối giữa module \acrshort{i2c} và \acrlong{mcu} được thực hiện như trong bảng \ref{tab:lcd-wiring} để sử dụng ngoại vi I2C1.
+
+\begin{table}[H]
+    \centering
+    \caption{Chân kết nối màn hình LCD}
+    \begin{tabular}{|c|c|}
+        \hline
+        Chân vi điều khiển & Chân module \acrshort{i2c} \\
+        \hline
+        PB8 (SDA) & SDA \\
+        \hline
+        PB9 (CLK) & CLK \\
+        \hline
+        GND & GND \\
+        \hline
+    \end{tabular}
+    \label{tab:lcd-wiring}
+\end{table}
+
+\paragraph{}
+Thiết bị chuyển \acrshort{usb} sang \acrshort{uart} được sử dụng là module CMSIS-DAP, tích hợp sẵn khả năng nạp chương trình qua chuẩn SWD và chuyển đổi \acrshort{usb} sang \acrshort{uart}. Sau khi kết hối các thiết bị, ta có sơ đồ như trong hình \ref{fig:dev-block}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/arm-co-ban-device-block-diagram.drawio.png}
+    \caption{Sơ đồ các thiết bị của hệ thống}
+    \label{fig:dev-block}
+\end{figure}
+
+\section{Các thành phần phần mềm}
+
+\subsection{Lựa chọn công cụ phát triển}
+\paragraph{}
+Rust là một ngôn ngữ lập trình mới có triển vọng trong nhiều lĩnh vực trong đó có lĩnh vực lập trình cho thiết bị nhúng. Vì vậy, nhóm quyết định phát triển hệ thống bằng ngôn ngữ này. Ứng dụng cho mảng nhúng, một số điểm mạnh của ngôn ngữ Rust bao gồm:
+\begin{itemize}
+    \item Hệ thống kiểu dữ liệu mạnh mẽ giúp tránh các lỗi liên quan đến bộ nhớ cũng như về luồng. Giúp chương trình chạy an toàn và dễ dàng đúng với mong muốn đặt ra hơn. Ví dụ như trong quản lý ngắt, luồng ngắt và luồng chính sẽ không thể gây ra sai xót về dữ liệu khi sử dụng Rust.
+    \item Dữ liệu được quản lý an toàn mà không yêu cầu trình dọn rác. Điều này đặc biệt quan trọng do các thiết bị nhúng thường có cấu hình không cao.
+    \item Các thư viện mã nguồn mở đa dạng, thân thiện với người dùng hơn nhờ hệ thống kiểu dữ liệu đa dạng, có thể tích hợp các phương thức giống lập trình hướng đối tượng trong khi vẫn đảm bảo các chức năng cấp thấp cần thiết cho lập trình nhúng.
+    \item Trình biên dịch mạnh mẽ, giúp phát hiện lỗi ngay từ khi lúc biên dịch. Khi chương trình biên dịch thành công là chương trình có thể hoạt động được. Lỗi logic không thể được phát hiện nên cần được kiểm tra kỹ.
+\end{itemize}
+
+\paragraph{}
+Môi trường phát triển dựa trên trình soạn thảo Neovim có tích hợp công cụ rust-analyzer cho việc lập trình Rust. Công cụ gỡ lỗi sử dụng probe-run giúp quá trình phát triển dễ dàng hơn.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/Screenshot from 2023-06-14 21-28-38.png}
+    \caption{Môi trường lập trình trên Neovim và rust-analyzer}
+    \label{fig:neovim-environment}
+\end{figure}
+
+\paragraph{}
+Thiết lập các tham số cho việc xây dựng, đầu tiên cần thiết lập linker và build target tại file .cargo/config.toml. Thiết lập rustflags cho linker, runner cho phần mềm probe-run và target mặc định khi xây dựng chương trình.
+\lstinputlisting[firstline=1]{../.cargo/config.toml}
+\paragraph{}
+Thiết lập linkscript tại file memory.x để linker kết hợp các file vào đúng vị trí của nó. Có thể chỉnh sửa để thiết lập việc sử dụng vùng nhớ lưu trữ lâu dài.
+\lstinputlisting{../memory.x}
+
+\subsection{Lựa chọn các thư viện}
+\paragraph{}
+Các thư viện cần thiết khi lập trình cho thiết bị nhúng bao gồm thư viện hỗ trợ phần cứng HAL và các thư viện đặc biệt giúp thao tác với các thiết bị ngoại vi được gắn thêm. Ngoài ra, các thư viện phụ trợ và thư viện cortex sẽ cần thiết cho các nhiệm vụ như delay. (Bảng \ref{tab:all-lib})
+\begin{table}[H]
+	\centering
+	\caption{Các thư viện và mục đích sử dụng}
+	\begin{tabular}{|c|c|}
+		\hline
+		\bfseries Tên thư viện & \bfseries Mục đích \\
+		\hline
+		embedded-hal & Chứa các giao diện, nguyên mẫu hàm \\
+		\hline
+		cortex-m & Bao gồm các ngoại vi của lõi cortex \\
+		\hline
+		stm32f1xx-hal & Chứa các  ngoại vi của stm32f1 \\
+		\hline
+		heapless & Chứa các kiểu dữ liệu phổ biển như String, Vector, ...  \\
+		\hline
+		critical-section & Thư viện hỗ trợ khóa tài nguyên bằng cách chặn interrupt  \\
+		\hline
+		liquidcrystal\_i2c-rs & Thư viện giao tiếp với màn hình 1602  \\
+		\hline
+	\end{tabular}
+	\label{tab:all-lib}
+\end{table}	
+\lstinputlisting[firstline=8]{../Cargo.toml}
+\subsection{Triển khai phần mềm}
+\paragraph{}
+Phần mềm được cài đặt với một ngắt để thực hiện nhận ký tự từ máy tính, giúp dữ liệu không bị mất so với việc liên tục hỏi nhận dữ liệu. Sơ đồ luồng dữ liệu được mô tả trong hình \ref{fig:data-flow}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/arm-co-ban-data-flow.jpg}
+	\caption{Sơ đồ luồng dữ liệu chính}
+	\label{fig:data-flow}
+\end{figure}
+
+Khai báo dữ liệu chia sẻ:
+\lstinputlisting[firstnumber=18, firstline=18, lastline=36]{../src/main.rs}
+
+Khai báo hàm thực hiện ngắt, tại dòng 53, thực hiện đẩy vào queue nếu ký hiệu là ký tự chữ, số và dấu cách. Nếu ký tự nhận được là phím enter (số 13), thay đổi trạng thái thành Submited.
+\lstinputlisting[firstnumber=38, firstline=38, lastline=63]{../src/main.rs}
+
+Thiết lập ngoại vi \acrshort{uart} cho \acrshort{mcu} STM32:
+\lstinputlisting[firstnumber=92, firstline=92, lastline=117]{../src/main.rs}
+
+Thiết lập ngoại vi \acrshort{i2c} và driver màn hình LCD1602 cho \acrshort{mcu} STM32:
+\lstinputlisting[firstnumber=119, firstline=119, lastline=140]{../src/main.rs}
+
+Nhận trạng thái và ký tự nhận được (nếu có) từ hàng đợi:
+\lstinputlisting[firstnumber=154, firstline=154, lastline=160]{../src/main.rs}
+
+Xử lý khi trạng thái là Typing và có ký tự mới: Thực hiện thêm ký tự vào chuỗi, gửi ký tự lên màn hình console, hiển thị chuỗi nhập được lên màn hình LCD1602:
+\lstinputlisting[firstnumber=162, firstline=162, lastline=179]{../src/main.rs}
+
+Xử lý khi trạng thái là Submited, tức sau khi người dùng nhấn enter, nếu số lượng ký tự từ 16 trở xuống, chỉ thực hiện in cả chuỗi. Nếu số lượng ký tự lớn hơn 16, thực hiên dịch chuyển 1 ký tự sau mỗi lần gọi:
+\lstinputlisting[firstnumber=180, firstline=180, lastline=207]{../src/main.rs}
+
+Xử lý khi trạng thái là Reset, tứ là khi người dùng nhấn Enter thêm một lần. Thực hiện các thao tác khôi phục trạng thái gốc.
+\lstinputlisting[firstnumber=208, firstline=208, lastline=219]{../src/main.rs}
+
+Khai báo các hàm bắt đầu và hàm thực hiện ngắt:
+\lstinputlisting[firstnumber=225, firstline=225, lastline=233]{../src/main.rs}
+
+
+\section{Chạy thử thiết bị}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/demo-device.jpg}
+	\caption{Giao diện thiết bị}
+	\label{fig:demo-device}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/demo-computer.png}
+	\caption{Giao diện trên màn hình console}
+	\label{fig:demo-computer}
+\end{figure}
+\section{Đánh giá}
+
+\subsection{Kết quả đạt được}
+Hệ thống đã đảm bảo đầy đủ theo các chức năng như đề ra trong đề tài. Hệ thống đã được xây dựng với các thiết bị phần cứng và phần mềm đúng như yêu cầu môn học đưa ra.
+Thời gian hiển thị tương đối chính xác theo giờ tiêu chuẩn.
+
+\subsection{Hạn chế của hệ thống}
+Hệ thống đã đạt được mong muốn đề ra nhưng cũng không tránh khỏi những sai sót. Do hệ thống được phát triển ở mức thực nghiệm nên thiết kế sản phẩm có sơ sài về mặt kết nối các phần cứng. Đôi khi kết nối chập chờn dẫn đến sai sót trong hiển thị.

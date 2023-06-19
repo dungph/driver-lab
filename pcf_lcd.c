@@ -65,18 +65,12 @@ int work_loop(void *dat) {
 
 static int lcd_probe(struct i2c_client *client) {
   pr_info("Probed %x", client->addr);
-
-  if (client->addr == 0x27) {
-    lcd_client = client;
-    lcd_init(lcd_client);
-    lcd_sysfs_init();
-    task_struct = kthread_run(work_loop, NULL, "pcf lcd work loop");
-    set_content("LCD\n Hello!");
-    return 0;
-  } else {
-    pr_info("Don't care %d address", client->addr);
-    return -1;
-  }
+  lcd_client = client;
+  lcd_init(lcd_client);
+  lcd_sysfs_init();
+  task_struct = kthread_run(work_loop, NULL, "pcf lcd work loop");
+  set_content("LCD\n Hello!");
+  return 0;
   return 0;
 }
 static int lcd_remove(struct i2c_client *client) {
@@ -89,10 +83,11 @@ static int lcd_remove(struct i2c_client *client) {
   pr_info("Removed\n");
   return 0;
 }
-static const struct of_device_id my_driver_ids[] = {{
-                                                        .compatible = "pcf,lcd",
-                                                    },
-                                                    {/*sentinel*/}};
+
+static const struct of_device_id my_driver_ids[] = {
+    {.compatible = "pcf,lcd"},
+    {},
+};
 MODULE_DEVICE_TABLE(of, my_driver_ids);
 
 static const struct i2c_device_id lcd_device_id[] = {

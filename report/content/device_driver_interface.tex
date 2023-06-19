@@ -1,0 +1,15 @@
+\paragraph{}
+Một số lựa chọn để giao tiếp với device driver của thiết bị nhúng bao gồm:
+
+\begin{itemize}
+	\item Sử dụng Character device driver
+	\item Sử dụng sysfs
+	\item Kết hợp các phương pháp
+\end{itemize}
+	
+\paragraph{}
+Với character device driver thiết bị được xuất hiện trên không gian người dùng với một file duy nhất bên trong /dev. Các thao tác có thể được thực hiện thông qua các lời gọi từ struct file\_operations như open, close, read, write, ioctl. Thông qua device file, thiết bị dạng vào/ra sẽ đơn giản hơn thông qua các lời gọi hệ thống. Một số ứng dụng sử dụng device file bao gồm: Giao tiếp với cổng serial, đọc từ ổ đĩa, …
+\paragraph{}
+Khác với character device driver, ứng dụng có thể sử dụng sysfs cho việc thiết lập và quản lý cấu hình. Các file trong không gian người dùng xuất hiện dưới dạng thư mục trong /sys/kernel/. Bên trong thư mục này là các file cấu hình được tạo ra với device driver giúp chương trình trong không gian người dùng có thể tương tác với driver thông qua việc đọc ghi các file. Giao tiếp với thiết bị phần cứng sẽ dễ dàng hơn thông qua sysfs do phần cứng có nhiều tham số cần đọc và ghi và chúng được tách riêng chúng ra từng file.
+\paragraph{}
+Với phần cứng hỗ trợ cả cấu hình các tham số và vào ra lượng thông tin lớn, kết hợp cả character device driver và sysfs sẽ tận dụng được lợi thế của cả hai phương pháp. Các thao tác vào ra sẽ được thực hiện qua character device driver, các thao tác cấu hình sẽ được thực hiện thông qua hệ thống sysfs và thao tác ioctl của character device driver. Khi đó người dùng có thể làm quen với thiết bị thông qua sysfs và thực hiện các thao tác qua chúng. Khi lập trình, việc sử dụng character device driver sẽ đem lại hiệu quả cao hơn.
