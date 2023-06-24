@@ -1,12 +1,12 @@
-\paragraph{}
+
 Linux kernel driver là một module được nạp vào nhân linux và chạy trên không gian địa chỉ của nhân linux giúp cung cấp các chức năng mở rộng cho nhân hệ điều hành.
-\paragraph{}
+
 Device driver trong linux là một kernel module cung cấp giao diện giao tiếp với các thiết bị phần cứng như USB, PCI, I2C, SPI, … Device driver thực hiện việc giao tiếp như gửi và nhận dữ liệu, từ thiết bị, đảm bảo cho thiết bị được hoạt động đúng mục đích đặt ra.
-\paragraph{}
+
 Khác với các thiết bị như PCI hay USB, thiết bị sử dụng giao tiếp I2C mặc định không được nhận biết bởi phần cứng mà thay vào đó phần mềm phải nhận biết những thiết bị nào được kết nối ở địa chỉ nào. Có một số cách để thực hiện việc này nhưng một phương pháp hiệu quả là sử dụng Device tree.
-\paragraph{}
+
 Device tree là một cấu trúc dsữ liệu và một hệ thống mô tả phần cứng được sử dụng trong hệ điều hành linux. Trong Device tree, các thiết bị I2C được khai báo tại bus và địa chỉ xác định. Cùng với thông tin bus và địa chỉ, Device tree còn mô tả loại driver tương thích với thiết bị. Khi trình điều khiển thiết bị được nạp, hàm probe sẽ được gọi khi trình điều khiển tương thích với thiết bị được khai báo trong Device tree.
-\paragraph{}
+
 Một Device tree cho thiết bị slave I2C có cấu trúc dạng như sau: thiết bị i2c-device được kết nối tới i2c-bus có địa chỉ 0x50. Driver tương thích là “vendor,i2c-device":
 \begin{lstlisting}
 	i2c {
@@ -19,6 +19,6 @@ Một Device tree cho thiết bị slave I2C có cấu trúc dạng như sau: th
 		}
 	}
 \end{lstlisting}
-\paragraph{}
+
 Bên trong driver, sau khi hàm probe được gọi với tham số struct i2c\_client tương ứng, thực hiện lưu lại biến này để thực hiện giao tiếp với thiết bị. Để đọc từ i2c device, sử dụng hàm i2c\_smbus\_read*, và i2c\_smbus\_write* cho việc ghi.
 

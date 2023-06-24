@@ -1,0 +1,19 @@
+
+Khác với các thiết bị như PCI hay USB, thiết bị sử dụng giao tiếp \acrshort{i2c} mặc định không được nhận biết bởi phần cứng mà thay vào đó phần mềm phải nhận biết những thiết bị nào được kết nối ở địa chỉ nào. Có một số cách để thực hiện việc này nhưng một phương pháp hiệu quả là sử dụng Device tree. \cite{i2c-instance}
+
+Device tree là một cấu trúc dsữ liệu và một hệ thống mô tả phần cứng được sử dụng trong hệ điều hành linux. Trong Device tree, các thiết bị \acrshort{i2c} được khai báo tại bus và địa chỉ xác định. Cùng với thông tin bus và địa chỉ, Device tree còn mô tả loại driver tương thích với thiết bị. Khi trình điều khiển thiết bị được nạp, hàm probe sẽ được gọi khi trình điều khiển tương thích với thiết bị được khai báo trong Device tree.
+
+Một Device tree cho thiết bị slave I2C có cấu trúc dạng như sau: thiết bị i2c-device được kết nối tới i2c-bus có địa chỉ 0x50. Driver tương thích là “vendor,i2c-device":
+\begin{lstlisting}
+	i2c {
+		compatible = "i2c-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		i2c-device@50 {
+			compatible = "vendor,i2c-device";
+			reg = <0x50>;
+		}
+	}
+\end{lstlisting}
+
+Bên trong driver, sau khi hàm probe được gọi với tham số struct i2c\_client tương ứng, thực hiện lưu lại biến này để thực hiện giao tiếp với thiết bị. Để đọc từ i2c device, sử dụng hàm i2c\_smbus\_read*, và i2c\_smbus\_write* cho việc ghi.

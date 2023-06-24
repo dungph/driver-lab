@@ -1,0 +1,9 @@
+Trong Linux, việc lập trình các thiết bị ngoại vi có thể được thực hiện ở hai nơi khác nhau: trong không gian người dùng (user space) hoặc trong không gian nhân (kernel space). 
+
+Viết chương trình trong không gian người dùng không đòi hỏi kiến thức sâu về hệ điều hành Linux và kernel. Chương trình trong không gian người dùng sử dụng các API, thư viện hoặc giao thức cung cấp bởi kernel để tương tác với thiết bị thông qua các giao tiếp như USB, I2C, GPIO. Chương trình dạng này không có quyền truy cập trực tiếp vào phần cứng và cần sự hỗ trợ từ driver đã được cài đặt trong kernel.
+
+Viết driver trong không gian nhân yêu cầu kiến thức về lõi hệ điều hành Linux và cách thức hoạt động của thiết bị.
+Driver trong không gian nhân được biên dịch thành mô-đun nhân và chạy trong không gian nhân. Chúng có quyền truy cập trực tiếp vào phần cứng và cung cấp các API để cho phép các ứng dụng trong không gian người dùng tương tác với thiết bị.
+Viết driver trong không gian nhân có thể đòi hỏi quyền root (hoặc sử dụng sudo) để tải và cài đặt driver vào hệ thống.
+
+Trong nhiều trường hợp, viết chương trình trong không gian người dùng là đủ để tương tác với các thiết bị ngoại vi trong Linux. Tuy nhiên, trong một số trường hợp đặc biệt hoặc khi yêu cầu tương tác phức tạp hơn, viết driver trong không gian nhân có thể là lựa chọn tốt hơn.
